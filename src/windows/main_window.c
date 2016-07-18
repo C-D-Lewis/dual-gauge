@@ -34,7 +34,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
 
   const int top = 120;
   const int bottom = 0;
-  const int lr = 30;
+  const int lr = PBL_IF_ROUND_ELSE(50, 30);
   GRect text_bounds = grect_inset(bounds, GEdgeInsets(top, lr, bottom, lr));
   static char s_local_buff[8];
   snprintf(s_local_buff, sizeof(s_local_buff), "%d", s_local_perc);
@@ -46,11 +46,11 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_text(ctx, s_remote_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
     text_bounds, GTextOverflowModeWordWrap, GTextAlignmentRight, NULL);
 
-  GRect bitmap_rect = GRect(24, 80, 40, 40);
+  GRect bitmap_rect = GRect(PBL_IF_ROUND_ELSE(43, 24), 80, 40, 40);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, s_watch_bitmap, bitmap_rect);
 
-  bitmap_rect.origin.x += 57;
+  bitmap_rect.origin.x += PBL_IF_ROUND_ELSE(56, 57);
   graphics_draw_bitmap_in_rect(ctx, s_phone_bitmap, bitmap_rect);  
 }
 
@@ -58,6 +58,10 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   static char s_buff[8];
   strftime(s_buff, sizeof(s_buff), "%I:%M", tick_time);
   text_layer_set_text(s_time_layer, s_buff);
+
+  if(tick_time->tm_min % 15 == 0) {
+    update_gauges();
+  }
 }
 
 static void window_load(Window *window) {
