@@ -36,7 +36,7 @@ static void update_gauges() {
 static void canvas_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
-  const int top = 120;
+  const int top = 130;
   const int bottom = 0;
   const int lr = PBL_IF_ROUND_ELSE(50, 30);
   GRect text_bounds = grect_inset(bounds, GEdgeInsets(top, lr, bottom, lr));
@@ -50,7 +50,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_text(ctx, s_remote_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
     text_bounds, GTextOverflowModeWordWrap, GTextAlignmentRight, NULL);
 
-  GRect bitmap_rect = GRect(PBL_IF_ROUND_ELSE(43, 24), 80, 40, 40);
+  GRect bitmap_rect = GRect(PBL_IF_ROUND_ELSE(43, 24), 90, 40, 40);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, s_watch_bitmap, bitmap_rect);
 
