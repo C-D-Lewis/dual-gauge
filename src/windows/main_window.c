@@ -3,6 +3,7 @@
 #include <pebble-dash-api/pebble-dash-api.h>
 #include <pebble-events/pebble-events.h>
 
+#define APP_NAME "Dual Gauge"
 #define NO_VALUE -1
 
 static Window *s_window;
@@ -12,13 +13,16 @@ static Layer *s_canvas_layer;
 static GBitmap *s_watch_bitmap, *s_phone_bitmap;
 static int s_local_perc, s_remote_perc = NO_VALUE;
 
-static void get_data_callback(DataType type, DataValue value, bool success) {
-  if(success) {
-    s_remote_perc = value.integer_value;
-    layer_mark_dirty(s_canvas_layer);
-  } else {
-    s_remote_perc = NO_VALUE;
-  }
+static void error_callback(ErrorCode code) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "ErrorCode: %d", code);
+
+  s_remote_perc = NO_VALUE;
+  layer_mark_dirty(s_canvas_layer);
+}
+
+static void get_data_callback(DataType type, DataValue value) {
+  s_remote_perc = value.integer_value;
+  layer_mark_dirty(s_canvas_layer);
 }
 
 static void update_gauges() {
@@ -84,7 +88,7 @@ static void window_load(Window *window) {
   s_canvas_layer = layer_create(bounds);
   layer_set_update_proc(s_canvas_layer, canvas_update_proc);
   layer_add_child(window_layer, s_canvas_layer);
-
+  
   update_gauges();
 }
 
@@ -99,6 +103,9 @@ static void window_unload(Window *window) {
 }
 
 void main_window_push() {
+  dash_api_init(APP_NAME, error_callback);
+  events_app_message_open();
+
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
   window_set_window_handlers(s_window, (WindowHandlers) {

@@ -7,7 +7,7 @@
   ],
   "private": true,
   "dependencies": {
-    "pebble-dash-api": "^1.0.1"
+    "pebble-dash-api": "file:///Users/chrislewis/Dropbox/Pebble-Dev/3.0/pebble-dash-api"
   },
   "pebble": {
     "displayName": "Dual Gauge",
