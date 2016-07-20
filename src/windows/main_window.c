@@ -43,8 +43,15 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
 
   const int top = 130;
   const int bottom = 0;
-  const int lr = PBL_IF_ROUND_ELSE(50, 30);
-  GRect text_bounds = grect_inset(bounds, GEdgeInsets(top, lr, bottom, lr));
+  int left = PBL_IF_ROUND_ELSE(50, 30);
+  int right = PBL_IF_ROUND_ELSE(50, 30);
+  if(s_local_perc == 100) {
+    left -= 5;
+  }
+  if(s_remote_perc == 100) {
+    right -= 5;
+  }
+  GRect text_bounds = grect_inset(bounds, GEdgeInsets(top, right, bottom, left));
   static char s_local_buff[8];
   snprintf(s_local_buff, sizeof(s_local_buff), "%d", s_local_perc);
   graphics_context_set_text_color(ctx, GColorWhite);
