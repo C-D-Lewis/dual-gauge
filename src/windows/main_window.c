@@ -13,23 +13,28 @@ static Layer *s_canvas_layer;
 static GBitmap *s_watch_bitmap, *s_phone_bitmap;
 static int s_local_perc, s_remote_perc = NO_VALUE;
 
-static void error_callback(ErrorCode code) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "ErrorCode: %d", code);
-
-  s_remote_perc = NO_VALUE;
-  layer_mark_dirty(s_canvas_layer);
-}
-
 static void get_data_callback(DataType type, DataValue value) {
   s_remote_perc = value.integer_value;
   layer_mark_dirty(s_canvas_layer);
+}
+
+static void error_callback(ErrorCode code) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "ErrorCode: %d", code);
+
+  if(code == ErrorCodeSuccess) {
+    dash_api_get_data(DataTypeBatteryPercent, get_data_callback);
+  } else {
+    // Not available
+    s_remote_perc = NO_VALUE;
+    layer_mark_dirty(s_canvas_layer);
+  }
 }
 
 static void update_gauges() {
   BatteryChargeState state = battery_state_service_peek();
   s_local_perc = (int)state.charge_percent;
 
-  dash_api_get_data(DataTypeBatteryPercent, get_data_callback);
+  dash_api_check_is_available();
   layer_mark_dirty(s_canvas_layer);
 }
 
