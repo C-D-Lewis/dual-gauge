@@ -44,7 +44,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   const int top = 130;
   const int bottom = 0;
   int left = PBL_IF_ROUND_ELSE(50, 30);
-  int right = PBL_IF_ROUND_ELSE(50, 30);
+  int right = PBL_IF_ROUND_ELSE(48, 30);
   if(s_local_perc == 100) {
     left -= 5;
   }
