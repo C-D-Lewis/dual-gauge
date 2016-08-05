@@ -5,6 +5,7 @@
 
 #define APP_NAME "Dual Gauge"
 #define NO_VALUE -1
+// #define TEST
 
 static Window *s_window;
 static TextLayer *s_time_layer;
@@ -21,9 +22,7 @@ static void get_data_callback(DataType type, DataValue value) {
 static void error_callback(ErrorCode code) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "ErrorCode: %d", code);
 
-  if(code == ErrorCodeSuccess) {
-    dash_api_get_data(DataTypeBatteryPercent, get_data_callback);
-  } else {
+  if(code != ErrorCodeSuccess) {
     // Not available
     s_remote_perc = NO_VALUE;
     layer_mark_dirty(s_canvas_layer);
@@ -34,8 +33,12 @@ static void update_gauges() {
   BatteryChargeState state = battery_state_service_peek();
   s_local_perc = (int)state.charge_percent;
 
-  dash_api_check_is_available();
+  dash_api_get_data(DataTypeBatteryPercent, get_data_callback);
   layer_mark_dirty(s_canvas_layer);
+
+#if defined(TEST)
+  dash_api_fake_get_data_response(DataTypeBatteryPercent, 75, NULL);
+#endif
 }
 
 static void canvas_update_proc(Layer *layer, GContext *ctx) {
@@ -72,7 +75,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   static char s_buff[8];
-  strftime(s_buff, sizeof(s_buff), "%I:%M", tick_time);
+  strftime(s_buff, sizeof(s_buff), clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
   text_layer_set_text(s_time_layer, s_buff);
 
   if(tick_time->tm_min % 15 == 0) {
