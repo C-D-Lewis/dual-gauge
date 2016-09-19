@@ -5,14 +5,14 @@
 
 #define APP_NAME "Dual Gauge"
 #define NO_VALUE -1
-// #define TEST
+#define TEST
 
 static Window *s_window;
-static TextLayer *s_time_layer;
 static Layer *s_canvas_layer;
 
 static GBitmap *s_watch_bitmap, *s_phone_bitmap;
 static int s_local_perc, s_remote_perc = NO_VALUE;
+static char s_time_buff[8];
 
 static void get_data_callback(DataType type, DataValue value) {
   s_remote_perc = value.integer_value;
@@ -44,7 +44,12 @@ static void update_gauges() {
 static void canvas_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
-  const int top = 130;
+  // Time
+  graphics_context_set_text_color(ctx, GColorWhite);
+  graphics_draw_text(ctx, s_time_buff, fonts_get_system_font(FONT_KEY_LECO_42_NUMBERS), 
+    grect_inset(bounds, GEdgeInsets(20, 0, 0, 0)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+
+  int top = 130;
   const int bottom = 0;
   int left = PBL_IF_ROUND_ELSE(50, 30);
   int right = PBL_IF_ROUND_ELSE(48, 30);
@@ -55,15 +60,19 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
     right -= 5;
   }
   GRect text_bounds = grect_inset(bounds, GEdgeInsets(top, right, bottom, left));
+
+  // local 
   static char s_local_buff[8];
   snprintf(s_local_buff, sizeof(s_local_buff), "%d", s_local_perc);
-  graphics_context_set_text_color(ctx, GColorWhite);
   graphics_draw_text(ctx, s_local_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
     text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+  // remote
+  text_bounds.origin.x += 58;
   static char s_remote_buff[8];
   snprintf(s_remote_buff, sizeof(s_remote_buff), (s_remote_perc == NO_VALUE) ? "-" : "%d", s_remote_perc);
   graphics_draw_text(ctx, s_remote_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
-    text_bounds, GTextOverflowModeWordWrap, GTextAlignmentRight, NULL);
+    text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 
   GRect bitmap_rect = GRect(PBL_IF_ROUND_ELSE(43, 24), 90, 40, 40);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
@@ -74,13 +83,13 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
-  static char s_buff[8];
-  strftime(s_buff, sizeof(s_buff), clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
-  text_layer_set_text(s_time_layer, s_buff);
+  strftime(s_time_buff, sizeof(s_time_buff), clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
 
   if(tick_time->tm_min % 15 == 0) {
     update_gauges();
   }
+
+  layer_mark_dirty(s_canvas_layer);
 }
 
 static void window_load(Window *window) {
@@ -90,16 +99,6 @@ static void window_load(Window *window) {
   s_watch_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ICON_WATCH);
   s_phone_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ICON_PHONE);
 
-  GSize time_size = GSize(120, 45);
-  const int tb = (bounds.size.h - time_size.h) / 4;
-  const int lr = (bounds.size.w - time_size.w) / 2;
-  s_time_layer = text_layer_create(grect_inset(bounds, GEdgeInsets(tb, lr)));
-  text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_LECO_42_NUMBERS));
-  text_layer_set_text_color(s_time_layer, GColorWhite);
-  text_layer_set_background_color(s_time_layer, GColorClear);
-  layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
-
   s_canvas_layer = layer_create(bounds);
   layer_set_update_proc(s_canvas_layer, canvas_update_proc);
   layer_add_child(window_layer, s_canvas_layer);
@@ -108,7 +107,6 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
-  text_layer_destroy(s_time_layer);
   layer_destroy(s_canvas_layer);
 
   gbitmap_destroy(s_watch_bitmap);
