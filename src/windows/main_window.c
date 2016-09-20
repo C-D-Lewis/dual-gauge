@@ -5,8 +5,8 @@
 
 #define APP_NAME "Dual Gauge"
 #define NO_VALUE -1
-#define TEST
-#define TEST_FULL
+// #define TEST
+// #define TEST_FULL
 
 static Window *s_window;
 static Layer *s_canvas_layer;
@@ -59,7 +59,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
 
   // Icons
   cursor.y += unob_gap;
-  cursor.y += 5;
+  cursor.y += 10;
   cursor.x = PBL_IF_ROUND_ELSE(43, 24);
 
   GRect bitmap_rect = GRect(cursor.x, cursor.y, 40, 40);
@@ -74,14 +74,13 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   s_remote_perc = 100;
 #endif
 
-  cursor.x = PBL_IF_ROUND_ELSE(50, 30);
+  cursor.x = PBL_IF_ROUND_ELSE(50, 31);
   if(s_local_perc == 100) {
     cursor.x -= 5;
   }
 
   // local 
-  cursor.y += unob_gap / 3;
-  cursor.y += 24;
+  cursor.y += 40;
   static char s_local_buff[8];
   snprintf(s_local_buff, sizeof(s_local_buff), "%d", s_local_perc);
   graphics_draw_text(ctx, s_local_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
@@ -89,7 +88,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
     GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 
   // remote
-  cursor.x += 58;
+  cursor.x += PBL_IF_ROUND_ELSE(57, 58);
   static char s_remote_buff[8];
   snprintf(s_remote_buff, sizeof(s_remote_buff), (s_remote_perc == NO_VALUE) ? "-" : "%d", s_remote_perc);
   graphics_draw_text(ctx, s_remote_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
