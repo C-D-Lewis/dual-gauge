@@ -6,6 +6,7 @@
 #define APP_NAME "Dual Gauge"
 #define NO_VALUE -1
 #define TEST
+#define TEST_FULL
 
 static Window *s_window;
 static Layer *s_canvas_layer;
@@ -42,44 +43,58 @@ static void update_gauges() {
 }
 
 static void canvas_update_proc(Layer *layer, GContext *ctx) {
-  GRect bounds = layer_get_bounds(layer);
+  GRect bounds = layer_get_unobstructed_bounds(layer);
+
+  int unob_gap = bounds.size.h / 3;
+
+  GPoint cursor = GPointZero;
+  cursor.y += unob_gap;
 
   // Time
+  cursor.y -= 35;
   graphics_context_set_text_color(ctx, GColorWhite);
   graphics_draw_text(ctx, s_time_buff, fonts_get_system_font(FONT_KEY_LECO_42_NUMBERS), 
-    grect_inset(bounds, GEdgeInsets(20, 0, 0, 0)), GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+    GRect(cursor.x, cursor.y, bounds.size.w, bounds.size.h),
+    GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 
-  int top = 130;
-  const int bottom = 0;
-  int left = PBL_IF_ROUND_ELSE(50, 30);
-  int right = PBL_IF_ROUND_ELSE(48, 30);
-  if(s_local_perc == 100) {
-    left -= 5;
-  }
-  if(s_remote_perc == 100) {
-    right -= 5;
-  }
-  GRect text_bounds = grect_inset(bounds, GEdgeInsets(top, right, bottom, left));
+  // Icons
+  cursor.y += unob_gap;
+  cursor.y += 5;
+  cursor.x = PBL_IF_ROUND_ELSE(43, 24);
 
-  // local 
-  static char s_local_buff[8];
-  snprintf(s_local_buff, sizeof(s_local_buff), "%d", s_local_perc);
-  graphics_draw_text(ctx, s_local_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
-    text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
-
-  // remote
-  text_bounds.origin.x += 58;
-  static char s_remote_buff[8];
-  snprintf(s_remote_buff, sizeof(s_remote_buff), (s_remote_perc == NO_VALUE) ? "-" : "%d", s_remote_perc);
-  graphics_draw_text(ctx, s_remote_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
-    text_bounds, GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
-
-  GRect bitmap_rect = GRect(PBL_IF_ROUND_ELSE(43, 24), 90, 40, 40);
+  GRect bitmap_rect = GRect(cursor.x, cursor.y, 40, 40);
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(ctx, s_watch_bitmap, bitmap_rect);
 
   bitmap_rect.origin.x += PBL_IF_ROUND_ELSE(56, 57);
-  graphics_draw_bitmap_in_rect(ctx, s_phone_bitmap, bitmap_rect);  
+  graphics_draw_bitmap_in_rect(ctx, s_phone_bitmap, bitmap_rect);
+
+#if defined(TEST_FULL)
+  s_local_perc = 100;
+  s_remote_perc = 100;
+#endif
+
+  cursor.x = PBL_IF_ROUND_ELSE(50, 30);
+  if(s_local_perc == 100) {
+    cursor.x -= 5;
+  }
+
+  // local 
+  cursor.y += unob_gap / 3;
+  cursor.y += 24;
+  static char s_local_buff[8];
+  snprintf(s_local_buff, sizeof(s_local_buff), "%d", s_local_perc);
+  graphics_draw_text(ctx, s_local_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
+    GRect(cursor.x, cursor.y, bounds.size.w, bounds.size.h),
+    GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+  // remote
+  cursor.x += 58;
+  static char s_remote_buff[8];
+  snprintf(s_remote_buff, sizeof(s_remote_buff), (s_remote_perc == NO_VALUE) ? "-" : "%d", s_remote_perc);
+  graphics_draw_text(ctx, s_remote_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
+    GRect(cursor.x, cursor.y, bounds.size.w, bounds.size.h),
+    GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
