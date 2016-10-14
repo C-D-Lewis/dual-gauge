@@ -70,7 +70,7 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_bitmap_in_rect(ctx, s_phone_bitmap, bitmap_rect);
 
 #if defined(TEST_FULL)
-  s_local_perc = 100;
+  s_local_perc = 78;
   s_remote_perc = 100;
 #endif
 
@@ -86,6 +86,10 @@ static void canvas_update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_text(ctx, s_local_buff, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS), 
     GRect(cursor.x, cursor.y, bounds.size.w, bounds.size.h),
     GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+  if(s_local_perc == 100) {
+    cursor.x += 5;
+  }
 
   // remote
   cursor.x += PBL_IF_ROUND_ELSE(57, 58);
